@@ -29,25 +29,25 @@ public class HeadObject extends GameObject {
     //w : up,  s:down, a: left, d: right
     public void changeDirection(KeyEvent e) {
         switch (e.getKeyCode()) {
-            case KeyEvent.VK_A:
+            case KeyEvent.VK_A, KeyEvent.VK_LEFT:
                 if (!"right".equals(direction)) {
                     direction = "left";
                     img = GameUtil.leftImg;
                 }
                 break;
-            case KeyEvent.VK_D:
+            case KeyEvent.VK_D, KeyEvent.VK_RIGHT:
                 if (!"left".equals(direction)) {
                     direction = "right";
                     img = GameUtil.rightImg;
                 }
                 break;
-            case KeyEvent.VK_W:
+            case KeyEvent.VK_W, KeyEvent.VK_UP:
                 if (!"down".equals(direction)) {
                     direction = "up";
                     img = GameUtil.upImg;
                 }
                 break;
-            case KeyEvent.VK_S:
+            case KeyEvent.VK_S, KeyEvent.VK_DOWN:
                 if (!"up".equals(direction)) {
                     direction = "down";
                     img = GameUtil.downImg;
@@ -116,7 +116,7 @@ public class HeadObject extends GameObject {
             this.frame.score ++;
         }
 
-        //check if pass the game
+        //check if pass the level
         if( this.frame.score >= 15) {
             Game.state = 4;
         }

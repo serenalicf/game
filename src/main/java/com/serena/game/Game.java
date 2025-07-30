@@ -20,6 +20,7 @@ public class Game extends JFrame {
 
     //game state: 0 not start, 1 playing, 2 stop, 3 fail, 4 pass, 5 reset after fail, 6 next level
     public static int state = 0;
+    public int duration = 0;
 
     //define cached images
     Image offScreenImage = null;
@@ -91,7 +92,13 @@ public class Game extends JFrame {
             }
             try {
                 //1s = 100 ms
-                Thread.sleep(200);
+                if(GameUtil.level == 2) {
+                    Thread.sleep(150);
+                } else if (GameUtil.level == 3) {
+                    Thread.sleep(100);
+                } else {
+                    Thread.sleep(200);
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
