@@ -18,6 +18,12 @@ public class Game extends JFrame {
     //score
     public int score = 0;
 
+    public static long startTime;
+    public static long totalPausedTime = 0;
+    public static long pauseStartTime;
+    public static boolean timerStarted = false;
+    private String formattedTime = "00:00";
+
     //game state: 0 not start, 1 playing, 2 stop, 3 fail, 4 pass, 5 reset after fail, 6 next level
     public static int state = 0;
     public int duration = 0;
@@ -52,22 +58,31 @@ public class Game extends JFrame {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                     switch (state) {
                         case 0:  //not start
+                            if (!timerStarted) {
+                                startTime = System.currentTimeMillis();
+                                totalPausedTime = 0;
+                                timerStarted = true;
+                            }
                             state = 1;
                             break;
                         case 1:
                             //playing
                             state = 2;
+                            pauseStartTime = System.currentTimeMillis();
                             repaint();
                             break;
                         case 2:
                             //stop
+                            totalPausedTime += System.currentTimeMillis() - pauseStartTime;
                             state = 1;
                             break;
                         case 3: //fail then reset
                             state = 5;
                             break;
                         case 4: //pass, next level
-                            state = 6;
+                            if (GameUtil.level < 3) {
+                                state = 6;
+                            }
                             break;
                         default:
                             break;
@@ -78,11 +93,17 @@ public class Game extends JFrame {
 
         while (true) {
             if (state == 1) {
+                long elapsedTime = System.currentTimeMillis() - startTime - totalPausedTime;
+                long seconds = elapsedTime / 1000;
+                long minutes = seconds / 60;
+                seconds = seconds % 60;
+                formattedTime = String.format("%02d:%02d", minutes, seconds);
                 repaint();
             }
             if (state == 5) {
                 //fail and reset
                 state = 0;
+                timerStarted = false;
                 resetGame();
             }
             if(state == 6 && GameUtil.level != 3) {
@@ -143,6 +164,9 @@ public class Game extends JFrame {
         //draw score
         GameUtil.drawWord(gImage, score + " score", Color.BLUE, 50, 650, 300);
 
+        //draw timer
+        GameUtil.drawWord(gImage, "Time: " + formattedTime, Color.WHITE, 20, 650, 340);
+
         gImage.setColor(Color.gray);
         //draw hint
         prompt(gImage);
@@ -172,7 +196,7 @@ public class Game extends JFrame {
         if (state == 4) {
             graphics.fillRect(120, 240, 400, 70);
             if(GameUtil.level == 3) {
-                GameUtil.drawWord(graphics, "Win!", Color.GREEN, 35, 150, 290);
+                GameUtil.drawWord(graphics, "Win! Total time: " + formattedTime, Color.GREEN, 35, 150, 290);
             }else {
                 GameUtil.drawWord(graphics, "Level Clear!", Color.GREEN, 35, 150, 290);
             }
