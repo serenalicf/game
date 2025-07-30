@@ -159,10 +159,10 @@ public class Game extends JFrame {
         foodObject.paint(gImage);
 
         //draw level
-        GameUtil.drawWord(gImage, "Level " + GameUtil.level, Color.ORANGE, 40, 650, 260);
+        GameUtil.drawWord(gImage, "Level: " + GameUtil.level, Color.ORANGE, 30, 650, 260);
 
         //draw score
-        GameUtil.drawWord(gImage, score + " score", Color.BLUE, 50, 650, 300);
+        GameUtil.drawWord(gImage, "Score: " +score , Color.BLUE, 30, 650, 300);
 
         //draw timer
         GameUtil.drawWord(gImage, "Time: " + formattedTime, Color.WHITE, 20, 650, 340);
