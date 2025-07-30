@@ -117,7 +117,7 @@ public class HeadObject extends GameObject {
         }
 
         //check if pass the game
-        if( this.frame.score >= 5) {
+        if( this.frame.score >= 15) {
             Game.state = 4;
         }
 
