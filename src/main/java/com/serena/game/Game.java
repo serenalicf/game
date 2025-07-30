@@ -106,14 +106,14 @@ public class Game extends JFrame {
                 timerStarted = false;
                 resetGame();
             }
-            if(state == 6 && GameUtil.level != 3) {
+            if (state == 6 && GameUtil.level != 3) {
                 state = 1;
                 GameUtil.level++;
                 resetGame();
             }
             try {
                 //1s = 100 ms
-                if(GameUtil.level == 2) {
+                if (GameUtil.level == 2) {
                     Thread.sleep(150);
                 } else if (GameUtil.level == 3) {
                     Thread.sleep(100);
@@ -137,16 +137,19 @@ public class Game extends JFrame {
         Graphics gImage = offScreenImage.getGraphics();
 
         //grey background
-        gImage.setColor(Color.gray);
+        gImage.setColor(Color.black);
         gImage.fillRect(0, 0, windowWidth, windowHeight);
 
-        //grid color
-        gImage.setColor(Color.black);
-        //grid : 20 x 20 rows
-        for (int i = 0; i <= 20; i++) {
-            gImage.drawLine(0, i * 30, 600, i * 30);
-            gImage.drawLine(i * 30, 0, i * 30, 600);
-        }
+//        //grid color
+        gImage.setColor(Color.white);
+
+        gImage.drawLine(600, 0, 600, 600);
+//        //grid : 20 x 20 rows
+//        for (int i = 0; i <= 20; i++) {
+//            gImage.drawLine(0, i * 30, 600, i * 30);
+//            gImage.drawLine(i * 30, 0, i * 30, 600);
+//        }
+
         //draw snake body to avoid repeating body
         for (int i = bodyObjectList.size() - 1; i >= 0; i--) {
             bodyObjectList.get(i).paint(gImage);
@@ -162,7 +165,7 @@ public class Game extends JFrame {
         GameUtil.drawWord(gImage, "Level: " + GameUtil.level, Color.ORANGE, 30, 650, 260);
 
         //draw score
-        GameUtil.drawWord(gImage, "Score: " +score , Color.BLUE, 30, 650, 300);
+        GameUtil.drawWord(gImage, "Score: " + score, Color.BLUE, 30, 650, 300);
 
         //draw timer
         GameUtil.drawWord(gImage, "Time: " + formattedTime, Color.WHITE, 20, 650, 340);
@@ -190,14 +193,14 @@ public class Game extends JFrame {
         //fail
         if (state == 3) {
             graphics.fillRect(120, 240, 400, 70);
-            GameUtil.drawWord(graphics, "Game Failed!", Color.RED, 35, 150, 290);
+            GameUtil.drawWord(graphics, "Game Over!", Color.RED, 35, 150, 290);
         }
         //pass
         if (state == 4) {
             graphics.fillRect(120, 240, 400, 70);
-            if(GameUtil.level == 3) {
+            if (GameUtil.level == 3) {
                 GameUtil.drawWord(graphics, "Win! Total time: " + formattedTime, Color.GREEN, 35, 150, 290);
-            }else {
+            } else {
                 GameUtil.drawWord(graphics, "Level Clear!", Color.GREEN, 35, 150, 290);
             }
         }
