@@ -111,8 +111,8 @@ public class HeadObject extends GameObject {
     }
 
     @Override
-    public void paint(Graphics graphics, float scaleX, float scaleY) {
-        super.paint(graphics, scaleX, scaleY);
+    public void paint(Graphics graphics, float scale, int scaleX, int scaleY) {
+        super.paint(graphics, scale, scaleX, scaleY);
 
         FoodObject food = this.frame.foodObject;
         Integer newX = null;

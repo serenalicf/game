@@ -25,7 +25,7 @@ public class FoodObject extends GameObject {
     }
 
     @Override
-    public void paint(Graphics graphics, float scaleX, float scaleY) {
-        super.paint(graphics, scaleX, scaleY);
+    public void paint(Graphics graphics, float scale, int offsetX, int offsetY) {
+        super.paint(graphics, scale, offsetX, offsetY);
     }
 }

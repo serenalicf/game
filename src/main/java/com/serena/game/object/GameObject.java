@@ -32,9 +32,11 @@ public class GameObject {
         this.frame = frame;
     }
 
-    public void paint(Graphics graphics, float scaleX, float scaleY) {
-        graphics.drawImage(img,x,y,null);
+    public void paint(Graphics graphics, float scale, int offsetX, int offsetY) {
+        int scaledX = offsetX + (int) (x * scale);
+        int scaledY = offsetY + (int) (y * scale);
+        int scaledWidth = (int) (width * scale);
+        int scaledHeight = (int) (height * scale);
+        graphics.drawImage(img, scaledX, scaledY, scaledWidth, scaledHeight, null);
     }
-
-
 }
