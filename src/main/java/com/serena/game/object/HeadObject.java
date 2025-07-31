@@ -1,6 +1,7 @@
 package com.serena.game.object;
 
 import com.serena.game.Game;
+import com.serena.game.GameState;
 import com.serena.game.util.GameUtil;
 import lombok.Data;
 
@@ -11,6 +12,18 @@ import java.util.List;
 
 @Data
 public class HeadObject extends GameObject {
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
+
+    public void setDirection(String direction) {
+        this.direction = direction;
+    }
 
     //control directions
     private String direction = "right";
@@ -71,7 +84,7 @@ public class HeadObject extends GameObject {
             //check head and body crush
             if(this.x == bodyObjectList.get(i).x && this.y == bodyObjectList.get(i).y){
                 //game failed
-                Game.state = 3;
+                Game.state = GameState.GAME_OVER;
             }
         }
 
@@ -98,8 +111,8 @@ public class HeadObject extends GameObject {
     }
 
     @Override
-    public void paint(Graphics graphics) {
-        super.paint(graphics);
+    public void paint(Graphics graphics, float scaleX, float scaleY) {
+        super.paint(graphics, scaleX, scaleY);
 
         FoodObject food = this.frame.foodObject;
         Integer newX = null;
@@ -118,7 +131,7 @@ public class HeadObject extends GameObject {
 
         //check if pass the level
         if( this.frame.score >= 15) {
-            Game.state = 4;
+            Game.state = GameState.LEVEL_CLEARED;
         }
 
         move();

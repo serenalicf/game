@@ -32,7 +32,7 @@ public class GameObject {
         this.frame = frame;
     }
 
-    public void paint(Graphics graphics) {
+    public void paint(Graphics graphics, float scaleX, float scaleY) {
         graphics.drawImage(img,x,y,null);
     }
 

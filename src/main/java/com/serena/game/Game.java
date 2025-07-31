@@ -1,6 +1,7 @@
 package com.serena.game;
 
 
+import com.serena.game.GameState;
 import com.serena.game.object.BodyObject;
 import com.serena.game.object.FoodObject;
 import com.serena.game.object.HeadObject;
@@ -8,6 +9,8 @@ import com.serena.game.util.GameUtil;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -24,16 +27,24 @@ public class Game extends JFrame {
     public static boolean timerStarted = false;
     private String formattedTime = "00:00";
 
-    //game state: 0 not start, 1 playing, 2 stop, 3 fail, 4 pass, 5 reset after fail, 6 next level
-    public static int state = 0;
+    public static GameState state = GameState.NOT_STARTED;
     public int duration = 0;
 
-    //define cached images
+    //define double buffering
     Image offScreenImage = null;
 
+    // Constants
+    public static final int INITIAL_WINDOW_WIDTH = 800;
+    public static final int INITIAL_WINDOW_HEIGHT = 600;
+    public static final int GRID_SIZE = 30;
+
     //window width height
-    int windowWidth = 800;
-    int windowHeight = 600;
+    int windowWidth = INITIAL_WINDOW_WIDTH;
+    int windowHeight = INITIAL_WINDOW_HEIGHT;
+
+    float scaleX;
+    float scaleY;
+
 
     HeadObject headObject = new HeadObject(GameUtil.rightImg, 60, 570, this);
 
@@ -57,31 +68,29 @@ public class Game extends JFrame {
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_SPACE) {
                     switch (state) {
-                        case 0:  //not start
+                        case NOT_STARTED:
                             if (!timerStarted) {
                                 startTime = System.currentTimeMillis();
                                 totalPausedTime = 0;
                                 timerStarted = true;
                             }
-                            state = 1;
+                            state = GameState.PLAYING;
                             break;
-                        case 1:
-                            //playing
-                            state = 2;
+                        case PLAYING:
+                            state = GameState.PAUSED;
                             pauseStartTime = System.currentTimeMillis();
                             repaint();
                             break;
-                        case 2:
-                            //stop
+                        case PAUSED:
                             totalPausedTime += System.currentTimeMillis() - pauseStartTime;
-                            state = 1;
+                            state = GameState.PLAYING;
                             break;
-                        case 3: //fail then reset
-                            state = 5;
+                        case GAME_OVER: //fail then reset
+                            state = GameState.RESETTING;
                             break;
-                        case 4: //pass, next level
+                        case LEVEL_CLEARED: //pass, next level
                             if (GameUtil.level < 3) {
-                                state = 6;
+                                state = GameState.NEXT_LEVEL;
                             }
                             break;
                         default:
@@ -91,8 +100,20 @@ public class Game extends JFrame {
             }
         });
 
+        // Inside the launch() method, after addKeyListener(...)
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                windowWidth = getWidth();
+                windowHeight = getHeight();
+                // By setting the off-screen image to null, we force it to be recreated
+                // with the new dimensions in the paint() method.
+                offScreenImage = null;
+            }
+        });
+
         while (true) {
-            if (state == 1) {
+            if (state == GameState.PLAYING) {
                 long elapsedTime = System.currentTimeMillis() - startTime - totalPausedTime;
                 long seconds = elapsedTime / 1000;
                 long minutes = seconds / 60;
@@ -100,14 +121,14 @@ public class Game extends JFrame {
                 formattedTime = String.format("%02d:%02d", minutes, seconds);
                 repaint();
             }
-            if (state == 5) {
+            if (state == GameState.RESETTING) {
                 //fail and reset
-                state = 0;
+                state = GameState.NOT_STARTED;
                 timerStarted = false;
                 resetGame();
             }
-            if (state == 6 && GameUtil.level != 3) {
-                state = 1;
+            if (state == GameState.NEXT_LEVEL && GameUtil.level != 3) {
+                state = GameState.PLAYING;
                 GameUtil.level++;
                 resetGame();
             }
@@ -130,45 +151,50 @@ public class Game extends JFrame {
     public void paint(Graphics graphics) {
         //initialize cached image
         if (offScreenImage == null) {
-            offScreenImage = this.createImage(windowWidth, windowHeight);
+            offScreenImage = this.createImage(getWidth(), getHeight());
         }
 
         //get related graphics
         Graphics gImage = offScreenImage.getGraphics();
 
+        scaleX = getWidth() / 800.0f;
+        scaleY = getHeight() / 600.0f;
+
         //grey background
         gImage.setColor(Color.black);
-        gImage.fillRect(0, 0, windowWidth, windowHeight);
+        gImage.fillRect(0, 0, getWidth(), getHeight());
 
 //        //grid color
         gImage.setColor(Color.white);
 
-        gImage.drawLine(600, 0, 600, 600);
-//        //grid : 20 x 20 rows
-//        for (int i = 0; i <= 20; i++) {
-//            gImage.drawLine(0, i * 30, 600, i * 30);
-//            gImage.drawLine(i * 30, 0, i * 30, 600);
-//        }
+        gImage.drawLine((int) (600 * scaleX), 0, (int) (600 * scaleX), (int) (600 * scaleY));
+
 
         //draw snake body to avoid repeating body
         for (int i = bodyObjectList.size() - 1; i >= 0; i--) {
-            bodyObjectList.get(i).paint(gImage);
+            // bodyObjectList.get(i).paint(gImage);
+            bodyObjectList.get(i).paint(gImage, scaleX, scaleY);
         }
 
         //draw snake head
-        headObject.paint(gImage);
+        // headObject.paint(gImage);
+        headObject.paint(gImage, scaleX, scaleY);
 
         //draw food
-        foodObject.paint(gImage);
+        // foodObject.paint(gImage);
+        foodObject.paint(gImage, scaleX, scaleY);
 
         //draw level
-        GameUtil.drawWord(gImage, "Level: " + GameUtil.level, Color.ORANGE, 30, 650, 260);
+        // GameUtil.drawWord(gImage, "Level: " + GameUtil.level, Color.ORANGE, 30, 650, 260);
+        GameUtil.drawWord(gImage, "Level " + GameUtil.level, Color.ORANGE, (int) (40 * scaleY), (int) (650 * scaleX), (int) (260 * scaleY));
 
         //draw score
-        GameUtil.drawWord(gImage, "Score: " + score, Color.BLUE, 30, 650, 300);
+        // GameUtil.drawWord(gImage, "Score: " + score, Color.BLUE, 30, 650, 300);
+        GameUtil.drawWord(gImage,  "Score " + score, Color.BLUE, (int) (40 * scaleY), (int) (650 * scaleX), (int) (300 * scaleY));
 
         //draw timer
-        GameUtil.drawWord(gImage, "Time: " + formattedTime, Color.WHITE, 20, 650, 340);
+        // GameUtil.drawWord(gImage, "Time: " + formattedTime, Color.WHITE, 20, 650, 340);
+        GameUtil.drawWord(gImage, "Time " + formattedTime, Color.WHITE, (int) (20 * scaleY), (int) (650 * scaleX), (int) (340 * scaleY));
 
         gImage.setColor(Color.gray);
         //draw hint
@@ -179,43 +205,59 @@ public class Game extends JFrame {
     }
 
 
+    private void drawPromptBox(Graphics graphics) {
+        graphics.fillRect((int) (120 * scaleX), (int) (240 * scaleY), (int) (400 * scaleX), (int) (70 * scaleY));
+    }
+
     void prompt(Graphics graphics) {
-        //not start
-        if (state == 0) {
-            graphics.fillRect(120, 240, 400, 70);
-            GameUtil.drawWord(graphics, "Press space to start", Color.YELLOW, 35, 150, 290);
-        }
-        //stop
-        if (state == 2) {
-            graphics.fillRect(120, 240, 400, 70);
-            GameUtil.drawWord(graphics, "Press space to continue", Color.YELLOW, 35, 150, 290);
-        }
-        //fail
-        if (state == 3) {
-            graphics.fillRect(120, 240, 400, 70);
-            GameUtil.drawWord(graphics, "Game Over!", Color.RED, 35, 150, 290);
-        }
-        //pass
-        if (state == 4) {
-            graphics.fillRect(120, 240, 400, 70);
-            if (GameUtil.level == 3) {
-                GameUtil.drawWord(graphics, "Win! Total time: " + formattedTime, Color.GREEN, 35, 150, 290);
-            } else {
-                GameUtil.drawWord(graphics, "Level Clear!", Color.GREEN, 35, 150, 290);
-            }
+        switch (state) {
+            case NOT_STARTED:
+                drawPromptBox(graphics);
+                GameUtil.drawWord(graphics, "Press space to start", Color.YELLOW, (int) (35 * scaleY), (int) (150 * scaleX), (int) (290 * scaleY));
+                break;
+            case PAUSED:
+                drawPromptBox(graphics);
+                GameUtil.drawWord(graphics, "Press space to continue", Color.YELLOW, (int) (35 * scaleY), (int) (150 * scaleX), (int) (290 * scaleY));
+                break;
+            case GAME_OVER:
+                drawPromptBox(graphics);
+                GameUtil.drawWord(graphics, "Game Over!", Color.RED, (int) (35 * scaleY), (int) (150 * scaleX), (int) (290 * scaleY));
+                break;
+            case LEVEL_CLEARED:
+                drawPromptBox(graphics);
+                if (GameUtil.level == 3) {
+                    GameUtil.drawWord(graphics, "Win! Total time: " + formattedTime, Color.GREEN, (int) (35 * scaleY), (int) (150 * scaleX), (int) (290 * scaleY));
+                } else {
+                    GameUtil.drawWord(graphics, "Level Clear!", Color.GREEN, (int) (35 * scaleY), (int) (150 * scaleX), (int) (290 * scaleY));
+                }
+                break;
         }
 
     }
 
     //reset game
     void resetGame() {
-        //close current window
-        this.dispose();
+        // Reset game state variables
+        score = 0;
+        state = GameState.NOT_STARTED;
+        timerStarted = false;
+        totalPausedTime = 0;
+        formattedTime = "00:00";
 
-        //create new window
-        String[] args = {};
-        main(args);
+        // Reset snake position
+        headObject.setX(60);
+        headObject.setY(570);
+        headObject.setDirection("right");
 
+        // Reset snake body
+        bodyObjectList.clear();
+        bodyObjectList.add(new BodyObject(GameUtil.bodyImg, 30, 570, this));
+        bodyObjectList.add(new BodyObject(GameUtil.bodyImg, 0, 570, this));
+
+        // Reset food
+        foodObject = new FoodObject().getFood();
+
+        repaint();
     }
 
 
